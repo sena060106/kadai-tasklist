@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Task;  
+use App\User;
 
 class TasksController extends Controller
 {
@@ -17,11 +18,12 @@ class TasksController extends Controller
     {
                 // メッセージ一覧を取得
         $tasks = Task::all();
-
+     
         // メッセージ一覧ビューでそれを表示
         return view('tasks.index', [
             'tasks' => $tasks,
         ]);
+        
     }
 
     /**
@@ -53,11 +55,10 @@ class TasksController extends Controller
         ]);
         
          // メッセージを作成
-        $task = new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
-
+        $request->user()->tasks()->create([
+            'status' => $request->status,
+            'content' => $request->content,
+        ]);
         // トップページへリダイレクトさせる
         return redirect('/');
     }
@@ -71,17 +72,13 @@ class TasksController extends Controller
     public function show($id)
     {
         // idの値でメッセージを検索して取得
-        $task = Task::findOrFail($id);
-       $user = User::findOrFail($id);
+       $task = Task::findOrFail($id);
 
         // メッセージ詳細ビューでそれを表示
         return view('tasks.show', [
             'task' => $task,
         ]);
         
-        return view('users.show', [
-            'user' => $user,
-        ]);
     }
 
     /**
