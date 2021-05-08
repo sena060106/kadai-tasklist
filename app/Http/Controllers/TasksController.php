@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 use App\Task;  
 use App\User;
+use \Auth;
 
 class TasksController extends Controller
 {
@@ -16,14 +18,18 @@ class TasksController extends Controller
      */
     public function index()
     {
-                // メッセージ一覧を取得
-        $tasks = Task::all();
-     
+        
+        
+        // メッセージ一覧を取得
+        $user = Auth::user();
+        $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
+        
         // メッセージ一覧ビューでそれを表示
         return view('tasks.index', [
             'tasks' => $tasks,
         ]);
         
+       
     }
 
     /**
@@ -73,12 +79,15 @@ class TasksController extends Controller
     {
         // idの値でメッセージを検索して取得
        $task = Task::findOrFail($id);
-
+       
         // メッセージ詳細ビューでそれを表示
+         if (\Auth::id() === $task->user_id) {
         return view('tasks.show', [
             'task' => $task,
         ]);
-        
+         }
+         
+         return redirect('/');
     }
 
     /**
@@ -91,11 +100,15 @@ class TasksController extends Controller
     {
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
-
+        
+         if (\Auth::id() === $task->user_id) {
         // メッセージ編集ビューでそれを表示
         return view('tasks.edit', [
             'task' => $task,
         ]);
+         }
+         
+         return redirect('/');
     }
 
     /**
@@ -114,10 +127,13 @@ class TasksController extends Controller
         
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
+        
         // メッセージを更新
+        if (\Auth::id() === $task->user_id) {
         $task->status = $request->status;
         $task->content = $request->content;
         $task->save();
+        }
 
         // トップページへリダイレクトさせる
         return redirect('/');
@@ -133,9 +149,12 @@ class TasksController extends Controller
     {
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
+        
         // メッセージを削除
+          if (\Auth::id() === $task->user_id) {
         $task->delete();
-
+          }
+        
         // トップページへリダイレクトさせる
         return redirect('/');
     }
